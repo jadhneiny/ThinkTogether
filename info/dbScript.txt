@@ -1,0 +1,182 @@
+-- =====================================
+-- Table: User
+-- =====================================
+CREATE TABLE User (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(100),
+    Username VARCHAR(100) UNIQUE NOT NULL,
+    Email VARCHAR(100) UNIQUE NOT NULL,
+    Password VARCHAR(255) NOT NULL,
+    Role VARCHAR(20) DEFAULT 'User',
+    ReputationPoints INT DEFAULT 0,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- =====================================
+-- Table: Category
+-- =====================================
+CREATE TABLE Category (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(50) UNIQUE NOT NULL
+);
+
+-- =====================================
+-- Table: Post
+-- =====================================
+CREATE TABLE Post (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    UserId INT NOT NULL,
+    Title VARCHAR(100) NOT NULL,
+    Description TEXT,
+    CategoryId INT,
+    Link VARCHAR(255),
+    CodeSnippet TEXT,
+    Upvotes INT DEFAULT 0,
+    Downvotes INT DEFAULT 0,
+    ShareCount INT DEFAULT 0,
+    Flagged BIT DEFAULT 0,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Foreign Keys
+    CONSTRAINT FK_Post_User FOREIGN KEY (UserId) REFERENCES User(Id) ON DELETE CASCADE,
+    CONSTRAINT FK_Post_Category FOREIGN KEY (CategoryId) REFERENCES Category(Id) ON DELETE SET NULL
+);
+
+-- =====================================
+-- Table: Comment
+-- =====================================
+CREATE TABLE Comment (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    PostId INT NOT NULL,
+    UserId INT NOT NULL,
+    Content TEXT NOT NULL,
+    MentionedUserId INT,
+    Flagged BIT DEFAULT 0,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Foreign Keys
+    CONSTRAINT FK_Comment_Post FOREIGN KEY (PostId) REFERENCES Post(Id) ON DELETE CASCADE,
+    CONSTRAINT FK_Comment_User FOREIGN KEY (UserId) REFERENCES User(Id) ON DELETE CASCADE,
+    CONSTRAINT FK_Comment_MentionedUser FOREIGN KEY (MentionedUserId) REFERENCES User(Id) ON DELETE SET NULL
+);
+
+-- =====================================
+-- Table: Vote
+-- =====================================
+CREATE TABLE Vote (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    PostId INT NOT NULL,
+    UserId INT NOT NULL,
+    VoteType VARCHAR(10) CHECK (VoteType IN ('Upvote', 'Downvote')),
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Foreign Keys
+    CONSTRAINT FK_Vote_Post FOREIGN KEY (PostId) REFERENCES Post(Id) ON DELETE CASCADE,
+    CONSTRAINT FK_Vote_User FOREIGN KEY (UserId) REFERENCES User(Id) ON DELETE CASCADE
+);
+
+-- =====================================
+-- Table: Notification
+-- =====================================
+CREATE TABLE Notification (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    UserId INT NOT NULL,
+    Message TEXT NOT NULL,
+    NotificationType VARCHAR(50),
+    IsRead BIT DEFAULT 0,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Foreign Key
+    CONSTRAINT FK_Notification_User FOREIGN KEY (UserId) REFERENCES User(Id) ON DELETE CASCADE
+);
+
+-- =====================================
+-- Table: Tag
+-- =====================================
+CREATE TABLE Tag (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    TagName VARCHAR(50) UNIQUE NOT NULL
+);
+
+-- =====================================
+-- Table: PostTag (Many-to-Many relationship between Post and Tag)
+-- =====================================
+CREATE TABLE PostTag (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    PostId INT NOT NULL,
+    TagId INT NOT NULL,
+    
+    -- Foreign Keys
+    CONSTRAINT FK_PostTag_Post FOREIGN KEY (PostId) REFERENCES Post(Id) ON DELETE CASCADE,
+    CONSTRAINT FK_PostTag_Tag FOREIGN KEY (TagId) REFERENCES Tag(Id) ON DELETE CASCADE,
+    
+    -- Ensure no duplicate Post-Tag relationships
+    UNIQUE (PostId, TagId)
+);
+
+
+-- Now to insert some dummy data in the DB
+
+INSERT INTO User (Name, Username, Email, Password, Role, ReputationPoints)
+VALUES 
+('Alice Johnson', 'alicej', 'alice@example.com', 'password123', 'User', 10),
+('Bob Smith', 'bobsmith', 'bob@example.com', 'password456', 'User', 20),
+('Charlie Brown', 'charlieb', 'charlie@example.com', 'password789', 'Admin', 100);
+
+
+INSERT INTO Category (Name)
+VALUES 
+('Bug Fixes'),
+('Best Practices'),
+('New Ideas');
+
+
+INSERT INTO Post (UserId, Title, Description, CategoryId, Link, CodeSnippet, Upvotes, Downvotes, ShareCount, Flagged)
+VALUES 
+(1, 'Fix for Login Error', 'Resolved login issue by updating the session timeout.', 1, 'https://example.com/fix-login', NULL, 5, 0, 2, 0),
+(2, 'Optimizing SQL Queries', 'Tips to improve SQL performance.', 2, NULL, 'SELECT * FROM users WHERE active = 1;', 10, 1, 3, 0),
+(3, 'New Feature Proposal', 'Idea for implementing dark mode.', 3, NULL, NULL, 15, 0, 5, 0);
+
+
+INSERT INTO Tag (TagName)
+VALUES 
+('PHP'),
+('MySQL'),
+('Optimization'),
+('UI/UX');
+
+
+INSERT INTO PostTag (PostId, TagId)
+VALUES 
+(1, 1),  -- Post 1 tagged with PHP
+(1, 2),  -- Post 1 tagged with MySQL
+(2, 2),  -- Post 2 tagged with MySQL
+(2, 3),  -- Post 2 tagged with Optimization
+(3, 4);  -- Post 3 tagged with UI/UX
+
+
+INSERT INTO Comment (PostId, UserId, Content, MentionedUserId, Flagged)
+VALUES 
+(1, 2, 'Great fix! Helped me a lot.', NULL, 0),
+(1, 3, 'Can you explain the session update?', 1, 0),
+(3, 1, 'Dark mode would be awesome! @charlieb', 3, 0);
+
+
+INSERT INTO Vote (PostId, UserId, VoteType)
+VALUES 
+(1, 2, 'Upvote'),
+(1, 3, 'Upvote'),
+(2, 1, 'Upvote'),
+(3, 2, 'Downvote');
+
+
+INSERT INTO Notification (UserId, Message, NotificationType, IsRead)
+VALUES 
+(1, 'Bob commented on your post.', 'Comment', 0),
+(2, 'Alice upvoted your post.', 'Upvote', 1),
+(3, 'Charlie mentioned you in a comment.', 'Mention', 0);
+
+
