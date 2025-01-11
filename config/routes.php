@@ -6,6 +6,8 @@ $routes = [
     'POST /users' => 'UserController@createUser',
     'PUT /users/{id}' => 'UserController@updateUser',
     'DELETE /users/{id}' => 'UserController@deleteUser',
+    'GET /test' => 'UserController@test',
+
 
     // Post Routes
     'GET /posts' => 'PostController@getAllPosts',

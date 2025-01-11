@@ -39,4 +39,9 @@ class UserController {
         $rowCount = $this->model->deleteUser($id);
         echo json_encode(["deleted" => $rowCount > 0]);
     }
+    
+    public function test() {
+        echo "Test route working!";
+    }
+    
 }
