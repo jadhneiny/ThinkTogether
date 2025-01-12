@@ -12,6 +12,7 @@ $routes = [
     // Post Routes
     'GET /posts' => 'PostController@getAllPosts',
     'GET /posts/{id}' => 'PostController@getPostById',
+    'GET /posts/{id}/comments' => 'PostController@getCommentsByPostId', 
     'POST /posts' => 'PostController@createPost',
     'PUT /posts/{id}' => 'PostController@updatePost',
     'DELETE /posts/{id}' => 'PostController@deletePost',

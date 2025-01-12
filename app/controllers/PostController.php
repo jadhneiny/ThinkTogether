@@ -37,6 +37,13 @@ class PostController {
         }
     }
 
+    // Get all comments for a post
+    public function getCommentsByPostId($postId) {
+        $comments = $this->model->getCommentsByPostId($postId);
+        echo json_encode($comments);
+    }
+    
+
     // Create a new post
     public function createPost() {
         header('Content-Type: application/json');  

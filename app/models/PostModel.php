@@ -19,6 +19,13 @@ class PostModel {
         return $stmt->fetch(PDO::FETCH_ASSOC);  // Changed here
     }
 
+    public function getCommentsByPostId($postId) {
+        $stmt = $this->pdo->prepare("SELECT * FROM Comments WHERE PostId = ?");
+        $stmt->execute([$postId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+
     public function createPost($data) {
         $sql = "INSERT INTO Post (UserId, Title, Description, CategoryId, Link, CodeSnippet) 
                 VALUES (:userId, :title, :description, :categoryId, :link, :codeSnippet)";
