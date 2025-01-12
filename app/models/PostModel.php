@@ -6,26 +6,31 @@ class PostModel {
         $this->pdo = $pdo;
     }
 
+    // ✅ Fetch all posts without numeric keys
     public function getAllPosts() {
         $stmt = $this->pdo->query("SELECT * FROM Post");
-        return $stmt->fetchAll();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);  // Changed here
     }
 
+    // ✅ Fetch a single post without numeric keys
     public function getPostById($id) {
         $stmt = $this->pdo->prepare("SELECT * FROM Post WHERE Id = ?");
         $stmt->execute([$id]);
-        return $stmt->fetch();
+        return $stmt->fetch(PDO::FETCH_ASSOC);  // Changed here
     }
 
     public function createPost($data) {
-        $sql = "INSERT INTO Post (UserId, Title, Description, CategoryId, Link, CodeSnippet) VALUES (:userId, :title, :description, :categoryId, :link, :codeSnippet)";
+        $sql = "INSERT INTO Post (UserId, Title, Description, CategoryId, Link, CodeSnippet) 
+                VALUES (:userId, :title, :description, :categoryId, :link, :codeSnippet)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($data);
         return $this->pdo->lastInsertId();
     }
 
     public function updatePost($id, $data) {
-        $sql = "UPDATE Post SET Title = :title, Description = :description, CategoryId = :categoryId, Link = :link, CodeSnippet = :codeSnippet WHERE Id = :id";
+        $sql = "UPDATE Post 
+                SET Title = :title, Description = :description, CategoryId = :categoryId, Link = :link, CodeSnippet = :codeSnippet 
+                WHERE Id = :id";
         $stmt = $this->pdo->prepare($sql);
         $data['id'] = $id;
         $stmt->execute($data);
@@ -38,3 +43,4 @@ class PostModel {
         return $stmt->rowCount();
     }
 }
+?>
