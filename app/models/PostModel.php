@@ -20,10 +20,17 @@ class PostModel {
     }
 
     public function getCommentsByPostId($postId) {
-        $stmt = $this->pdo->prepare("SELECT * FROM Comments WHERE PostId = ?");
-        $stmt->execute([$postId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->pdo->prepare("SELECT * FROM Comments WHERE PostId = ?");
+            $stmt->execute([$postId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            // Debugging: Show the error
+            echo "Database Error: " . $e->getMessage();
+            exit;
+        }
     }
+    
     
 
     public function createPost($data) {

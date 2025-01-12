@@ -39,9 +39,21 @@ class PostController {
 
     // Get all comments for a post
     public function getCommentsByPostId($postId) {
-        $comments = $this->model->getCommentsByPostId($postId);
-        echo json_encode($comments);
+        if (!$postId) {
+            http_response_code(400);
+            echo json_encode(["error" => "Post ID is required"]);
+            exit;
+        }
+    
+        try {
+            $comments = $this->model->getCommentsByPostId($postId);
+            echo json_encode($comments);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(["error" => "Failed to fetch comments", "details" => $e->getMessage()]);
+        }
     }
+    
     
 
     // Create a new post
