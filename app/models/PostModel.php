@@ -21,7 +21,7 @@ class PostModel {
 
     public function getCommentsByPostId($postId) {
         try {
-            $stmt = $this->pdo->prepare("SELECT * FROM Comments WHERE PostId = ?");
+            $stmt = $this->pdo->prepare("SELECT * FROM Comment WHERE PostId = ?");
             $stmt->execute([$postId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
