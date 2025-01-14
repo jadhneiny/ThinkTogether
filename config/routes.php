@@ -9,6 +9,11 @@ $routes = [
     'GET /test' => 'UserController@test',
 
 
+    // Auth Routes
+    'POST /register' => 'UserController@registerUser',
+    'POST /login' => 'UserController@loginUser',
+
+
     // Post Routes
     'GET /posts' => 'PostController@getAllPosts',
     'GET /posts/{id}' => 'PostController@getPostById',

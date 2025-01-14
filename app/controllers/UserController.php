@@ -8,40 +8,78 @@ class UserController {
         $this->model = new UserModel($pdo);
     }
 
+    // ✅ Register a new user
+    public function registerUser() {
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        if (empty($data['name']) || empty($data['email']) || empty($data['password'])) {
+            http_response_code(400);
+            echo json_encode(["message" => "Please fill in all required fields."]);
+            return;
+        }
+
+        // ✅ Check if user exists
+        $existingUser = $this->model->findUserByEmail($data['email']);
+        if ($existingUser) {
+            http_response_code(409);
+            echo json_encode(["message" => "Email already in use."]);
+            return;
+        }
+
+        // ✅ Hash the password
+        $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
+
+        // ✅ Prepare user data
+        $userData = [
+            'name' => $data['name'],
+            'username' => $data['username'] ?? '',
+            'email' => $data['email'],
+            'password' => $hashedPassword,
+            'role' => $data['role'] ?? 'user'
+        ];
+
+        // ✅ Insert user
+        $id = $this->model->createUser($userData);
+        echo json_encode(["message" => "User registered successfully!", "id" => $id]);
+    }
+
+    // ✅ Login user
+    public function loginUser() {
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        if (empty($data['email']) || empty($data['password'])) {
+            http_response_code(400);
+            echo json_encode(["message" => "Email and password are required."]);
+            return;
+        }
+
+        // ✅ Find user by email
+        $user = $this->model->findUserByEmail($data['email']);
+        if (!$user || !password_verify($data['password'], $user['Password'])) {
+            http_response_code(401);
+            echo json_encode(["message" => "Invalid email or password."]);
+            return;
+        }
+
+        // ✅ Login successful
+        echo json_encode(["message" => "Login successful!", "user" => $user]);
+    }
+
+    // ✅ Get all users
     public function getAllUsers() {
         $users = $this->model->getAllUsers();
         echo json_encode($users);
     }
 
+    // ✅ Get user by ID
     public function getUserById($id) {
         $user = $this->model->getUserById($id);
         if ($user) {
             echo json_encode($user);
         } else {
             http_response_code(404);
-            echo json_encode(["message" => "User not found"]);
+            echo json_encode(["message" => "User not found."]);
         }
     }
-
-    public function createUser() {
-        $data = json_decode(file_get_contents("php://input"), true);
-        $id = $this->model->createUser($data);
-        echo json_encode(["id" => $id]);
-    }
-
-    public function updateUser($id) {
-        $data = json_decode(file_get_contents("php://input"), true);
-        $rowCount = $this->model->updateUser($id, $data);
-        echo json_encode(["updated" => $rowCount > 0]);
-    }
-
-    public function deleteUser($id) {
-        $rowCount = $this->model->deleteUser($id);
-        echo json_encode(["deleted" => $rowCount > 0]);
-    }
-    
-    public function test() {
-        echo "Test route working!";
-    }
-    
 }
+?>
