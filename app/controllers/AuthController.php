@@ -8,7 +8,7 @@ use Firebase\JWT\Key;
 
 class AuthController {
     private $model;
-    private $secretKey = 'your_secret_key_here';  // 🔒 Replace with a strong key
+    private $secretKey = 'hellothisismysecretkeyforthinktogether';  // 🔒 Replace with a strong key
 
     public function __construct($pdo) {
         $this->model = new UserModel($pdo);
