@@ -7,6 +7,7 @@ $routes = [
     'PUT /users/{id}' => 'UserController@updateUser',
     'DELETE /users/{id}' => 'UserController@deleteUser',
     'GET /test' => 'UserController@test',
+    'GET /users/current' => 'UserController@getCurrentUser',
 
 
     // Auth Routes

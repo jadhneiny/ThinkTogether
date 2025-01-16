@@ -3,6 +3,8 @@ require_once '../app/models/UserModel.php';
 
 class UserController {
     private $model;
+    private $pdo;
+
 
     public function __construct($pdo) {
         $this->model = new UserModel($pdo);
@@ -81,5 +83,35 @@ class UserController {
             echo json_encode(["message" => "User not found."]);
         }
     }
+
+        // ✅ Fetch the current logged-in user
+        public function getCurrentUser() {
+            session_start();
+    
+            // Check if user is logged in
+            if (!isset($_SESSION['user_id'])) {
+                http_response_code(401);
+                echo json_encode(["message" => "User not logged in."]);
+                return;
+            }
+    
+            $userId = $_SESSION['user_id'];
+    
+            try {
+                $stmt = $this->pdo->prepare("SELECT Id, Name, Username, Email, Role, ReputationPoints, CreatedAt FROM User WHERE Id = ?");
+                $stmt->execute([$userId]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+                if ($user) {
+                    echo json_encode($user);
+                } else {
+                    http_response_code(404);
+                    echo json_encode(["message" => "User not found."]);
+                }
+            } catch (PDOException $e) {
+                http_response_code(500);
+                echo json_encode(["error" => $e->getMessage()]);
+            }
+        }
 }
 ?>
