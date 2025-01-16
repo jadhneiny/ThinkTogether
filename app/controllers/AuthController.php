@@ -69,26 +69,26 @@ class AuthController {
     // ✅ User Login with JWT Token
     public function login() {
         $data = json_decode(file_get_contents("php://input"), true);
-
+    
         $email = trim($data['email'] ?? '');
         $password = $data['password'] ?? '';
-
+    
         // 🚨 Input Validation
         if (empty($email) || empty($password)) {
             http_response_code(400);
             echo json_encode(["message" => "Email and password are required."]);
             return;
         }
-
+    
         // 🔍 Check if user exists
         $user = $this->model->findUserByEmail($email);
-
+    
         if (!$user || !password_verify($password, $user['Password'])) {
             http_response_code(401);
             echo json_encode(["message" => "Invalid email or password."]);
             return;
         }
-
+    
         // ✅ Generate JWT Token
         $payload = [
             'iss' => 'http://localhost',       // Issuer
@@ -102,16 +102,22 @@ class AuthController {
                 'role' => $user['Role']
             ]
         ];
-
-        $jwt = JWT::encode($payload, $this->secretKey, 'HS256');
-
-        // ✅ Send JWT Token
+    
+        try {
+            $jwt = JWT::encode($payload, $this->secretKey, 'HS256');
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(["message" => "Token generation failed.", "error" => $e->getMessage()]);
+            return;
+        }
+    
+        // ✅ Send ONLY the JWT Token
         http_response_code(200);
         echo json_encode([
             "message" => "Login successful.",
             "token" => $jwt
         ]);
-    }
+    }    
 
     // ✅ Get Current User from JWT
     public function getCurrentUser() {
