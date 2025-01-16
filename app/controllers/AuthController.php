@@ -1,5 +1,5 @@
 <?php
-require_once '../vendor/autoload.php';  // ✅ Include Composer autoload for JWT
+require_once '../vendor/autoload.php';  // ✅ Composer autoload for JWT
 require_once '../app/models/UserModel.php';
 require_once '../config/db_connection.php';
 
@@ -8,10 +8,11 @@ use Firebase\JWT\Key;
 
 class AuthController {
     private $model;
-    private $secretKey = 'hellothisismysecretkeyforthinktogether';  // 🔒 Replace with a strong key
+    private $secretKey;
 
     public function __construct($pdo) {
         $this->model = new UserModel($pdo);
+        $this->secretKey = getenv('JWT_SECRET') ?: 'hellothisismysecretkeyforthinktogether';  // 🔒 Use ENV for security
     }
 
     // ✅ User Registration
