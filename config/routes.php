@@ -6,13 +6,12 @@ $routes = [
     'POST /users' => 'UserController@createUser',
     'PUT /users/{id}' => 'UserController@updateUser',
     'DELETE /users/{id}' => 'UserController@deleteUser',
-    'GET /test' => 'UserController@test',
-    'GET /users/current' => 'UserController@getCurrentUser',
 
 
     // Auth Routes
-    'POST /register' => 'UserController@registerUser',
-    'POST /login' => 'UserController@loginUser',
+    'POST /register' => 'AuthController@register',
+    'POST /login' => 'AuthController@login',
+    'GET /users/current' => 'AuthController@getCurrentUser',
 
 
     // Post Routes

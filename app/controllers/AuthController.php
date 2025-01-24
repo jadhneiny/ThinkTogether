@@ -70,92 +70,99 @@ class AuthController {
     public function login() {
         $data = json_decode(file_get_contents("php://input"), true);
     
+        if (!$data) {
+            http_response_code(400);
+            echo json_encode(["message" => "No input data provided."]);
+            return;
+        }
+    
         $email = trim($data['email'] ?? '');
         $password = $data['password'] ?? '';
     
-        // 🚨 Input Validation
         if (empty($email) || empty($password)) {
             http_response_code(400);
             echo json_encode(["message" => "Email and password are required."]);
             return;
         }
     
-        // 🔍 Check if user exists
         $user = $this->model->findUserByEmail($email);
     
-        if (!$user || !password_verify($password, $user['Password'])) {
+        if (!$user) {
+            http_response_code(404);
+            echo json_encode(["message" => "User not found."]);
+            return;
+        }
+    
+        if (!password_verify($password, $user['Password'])) {
             http_response_code(401);
             echo json_encode(["message" => "Invalid email or password."]);
             return;
         }
     
-        // ✅ Generate JWT Token
-        $payload = [
-            'iss' => 'http://localhost',       // Issuer
-            'aud' => 'http://localhost',       // Audience
-            'iat' => time(),                   // Issued at
-            'exp' => time() + (60 * 60 * 24), // Expiration (1 day)
-            'data' => [
-                'id' => $user['Id'],
-                'name' => $user['Name'],
-                'email' => $user['Email'],
-                'role' => $user['Role']
-            ]
-        ];
-    
         try {
+            $payload = [
+                'iss' => 'http://localhost',
+                'aud' => 'http://localhost',
+                'iat' => time(),
+                'exp' => time() + (60 * 60 * 24),
+                'data' => [
+                    'id' => $user['Id'],
+                    'name' => $user['Name'],
+                    'email' => $user['Email'],
+                    'role' => $user['Role']
+                ]
+            ];
+    
             $jwt = JWT::encode($payload, $this->secretKey, 'HS256');
+    
+            http_response_code(200);
+            echo json_encode([
+                "message" => "Login successful.",
+                "token" => $jwt
+            ]);
         } catch (Exception $e) {
             http_response_code(500);
-            echo json_encode(["message" => "Token generation failed.", "error" => $e->getMessage()]);
-            return;
+            error_log("Token generation failed: " . $e->getMessage());
+            echo json_encode(["message" => "Token generation failed."]);
         }
+    }
     
-        // ✅ Send ONLY the JWT Token
-        http_response_code(200);
-        echo json_encode([
-            "message" => "Login successful.",
-            "token" => $jwt
-        ]);
-    }    
 
     // ✅ Get Current User from JWT
     public function getCurrentUser() {
         $headers = apache_request_headers();
         $authHeader = $headers['Authorization'] ?? '';
-
+    
         if (!$authHeader || !preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
             http_response_code(401);
             echo json_encode(["message" => "Authorization header not found."]);
+            error_log("Authorization header missing or invalid."); // Debug log
             return;
         }
-
+    
         $jwt = $matches[1];
-
+    
         try {
             $decoded = JWT::decode($jwt, new Key($this->secretKey, 'HS256'));
+            error_log("Decoded JWT: " . json_encode($decoded)); // Debug log
             $userId = $decoded->data->id;
-
+            error_log("Extracted User ID: $userId"); // Debug log
+    
             $user = $this->model->getUserById($userId);
-
             if ($user) {
                 unset($user['Password']);  // 🔒 Remove password
                 echo json_encode($user);
+                error_log("User found: " . json_encode($user)); // Debug log
             } else {
                 http_response_code(404);
                 echo json_encode(["message" => "User not found."]);
+                error_log("User not found for ID: $userId"); // Debug log
             }
-
         } catch (Exception $e) {
             http_response_code(401);
             echo json_encode(["message" => "Invalid or expired token."]);
+            error_log("JWT Error: " . $e->getMessage()); // Debug log
         }
     }
-
-    // 🚪 User Logout (Client-Side: Just delete the token)
-    public function logout() {
-        http_response_code(200);
-        echo json_encode(["message" => "Logout successful. Please delete the token on the client side."]);
-    }
+    
 }
-?>
