@@ -50,20 +50,45 @@ class UserModel {
         }
     }
     
-
     // ✅ Update user
-    public function updateUser($id, $data) {
-        // Dynamically build the query based on provided fields
+    public function updateUser($id) {
+        // Log the raw input for debugging
+        $rawInput = file_get_contents("php://input");
+        error_log("Raw input: " . $rawInput);
+    
+        // Decode the JSON input
+        $data = json_decode($rawInput, true);
+    
+        // Check for JSON parsing errors
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            http_response_code(400);
+            echo json_encode(["message" => "Invalid JSON input."]);
+            error_log("JSON parsing error: " . json_last_error_msg());
+            exit; // Stop further execution
+        }
+    
+        // Validate input
+        if (empty($data['name']) && empty($data['email']) && empty($data['password'])) {
+            http_response_code(400);
+            echo json_encode(["message" => "At least one field is required to update."]);
+            exit; // Stop further execution
+        }
+    
+        // Check if the user exists
+        $user = $this->getUserById($id);
+        if (!$user) {
+            http_response_code(404);
+            echo json_encode(["message" => "User not found."]);
+            exit; // Stop further execution
+        }
+    
+        // Prepare the update query
         $fields = [];
         $params = ['id' => $id];
-
+    
         if (!empty($data['name'])) {
             $fields[] = "Name = :name";
             $params['name'] = $data['name'];
-        }
-        if (!empty($data['username'])) {
-            $fields[] = "Username = :username";
-            $params['username'] = $data['username'];
         }
         if (!empty($data['email'])) {
             $fields[] = "Email = :email";
@@ -71,23 +96,32 @@ class UserModel {
         }
         if (!empty($data['password'])) {
             $fields[] = "Password = :password";
-            $params['password'] = $data['password'];
+            $params['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
         }
-        if (!empty($data['role'])) {
-            $fields[] = "Role = :role";
-            $params['role'] = $data['role'];
-        }
-
-        if (empty($fields)) {
-            return false; // No fields to update
-        }
-
+    
         $sql = "UPDATE User SET " . implode(", ", $fields) . " WHERE Id = :id";
-        $stmt = $this->pdo->prepare($sql);
-
-        return $stmt->execute($params);
-    }
-
+    
+        try {
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute($params);
+    
+            // Check if rows were actually updated
+            if ($stmt->rowCount() > 0) {
+                http_response_code(200);
+                echo json_encode(["message" => "User updated successfully."]);
+                exit; // Stop further execution after success
+            } else {
+                http_response_code(200); // Still OK, but no changes
+                echo json_encode(["message" => "No changes were made to the user."]);
+                exit; // Stop further execution
+            }
+        } catch (PDOException $e) {
+            error_log("Database error: " . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(["message" => "Failed to update user."]);
+            exit; // Stop further execution
+        }
+    }    
     // ✅ Delete user
     public function deleteUser($id) {
         $stmt = $this->pdo->prepare("DELETE FROM User WHERE Id = :id");
