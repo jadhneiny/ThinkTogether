@@ -158,7 +158,7 @@ class AuthController {
             $user = $this->model->getUserById($userId);
             if (!$user) {
                 http_response_code(404);
-                echo json_encode(["message" => "User not found."]);
+                echo json_encode(["message" => "User was not found."]);
                 error_log("User not found for ID: " . $userId); // Debug log
                 return;
             }
