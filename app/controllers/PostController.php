@@ -1,11 +1,14 @@
 <?php
 require_once '../app/models/PostModel.php';
+use \Firebase\JWT\JWT;
+use \Firebase\JWT\Key;
 
 class PostController {
     private $model;
+    private $secretKey;
 
     public function __construct($pdo) {
-        $this->model = new PostModel($pdo);
+        $this->secretKey = 'hellothisismysecretkeyforthinktogether'; 
     }
 
     // Get all posts
@@ -58,9 +61,41 @@ class PostController {
 
     // Create a new post
     public function createPost() {
-        header('Content-Type: application/json');  
+        header('Content-Type: application/json');
         try {
+            // Get the Authorization header and decode the JWT
+            $headers = apache_request_headers();
+            $authHeader = $headers['Authorization'] ?? '';
+            
+            if (!$authHeader || !preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+                http_response_code(401);
+                echo json_encode(["error" => "Unauthorized"]);
+                return;
+            }
+    
+            $jwt = $matches[1];
+            $decoded = JWT::decode($jwt, new Key($this->secretKey, 'HS256'));
+    
+            // Extract the user ID from the token
+            $userId = $decoded->data->id ?? null;
+            if (!$userId) {
+                http_response_code(401);
+                echo json_encode(["error" => "User ID not found in token"]);
+                return;
+            }
+    
+            // Parse the incoming request data
             $data = json_decode(file_get_contents("php://input"), true);
+            if (!$data) {
+                http_response_code(400);
+                echo json_encode(["error" => "Invalid request data"]);
+                return;
+            }
+    
+            // Add the user ID to the post data
+            $data['userId'] = $userId;
+    
+            // Insert the post into the database
             $id = $this->model->createPost($data);
             http_response_code(201);
             echo json_encode(["id" => $id]);
@@ -69,6 +104,7 @@ class PostController {
             echo json_encode(["error" => "Failed to create post: " . $e->getMessage()]);
         }
     }
+    
 
     // Update a post
     public function updatePost($id) {

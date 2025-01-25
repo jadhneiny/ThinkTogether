@@ -37,9 +37,17 @@ class PostModel {
         $sql = "INSERT INTO Post (UserId, Title, Description, CategoryId, Link, CodeSnippet) 
                 VALUES (:userId, :title, :description, :categoryId, :link, :codeSnippet)";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->execute($data);
+        $stmt->execute([
+            'userId' => $data['userId'],
+            'title' => $data['title'],
+            'description' => $data['description'],
+            'categoryId' => $data['categoryId'],
+            'link' => $data['link'],
+            'codeSnippet' => $data['codeSnippet']
+        ]);
         return $this->pdo->lastInsertId();
     }
+    
 
     public function updatePost($id, $data) {
         $sql = "UPDATE Post 
