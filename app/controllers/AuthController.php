@@ -152,10 +152,13 @@ class AuthController {
             if (!$userId) {
                 http_response_code(404);
                 echo json_encode(["message" => "User ID not found in token."]);
+                error_log("User ID missing from token.");
                 return;
             }
     
             $user = $this->model->getUserById($userId);
+            error_log("Database query result: " . print_r($user, true));
+    
             if (!$user) {
                 http_response_code(404);
                 echo json_encode(["message" => "User was not found."]);
@@ -166,12 +169,13 @@ class AuthController {
             unset($user['Password']); // Remove sensitive data
             http_response_code(200);
             echo json_encode($user);
+            error_log("Returning user data: " . json_encode($user));
         } catch (Exception $e) {
             http_response_code(500);
             error_log("Token decoding failed: " . $e->getMessage());
             echo json_encode(["message" => "Token decoding failed."]);
         }
-    }    
+    }        
     
     
 }
