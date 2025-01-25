@@ -11,7 +11,7 @@ $routes = [
     // Auth Routes
     'POST /register' => 'AuthController@register',
     'POST /login' => 'AuthController@login',
-    'GET /users/current' => 'AuthController@getCurrentUser',
+    'GET /users/curr' => 'AuthController@getCurrentUser',
 
 
     // Post Routes
