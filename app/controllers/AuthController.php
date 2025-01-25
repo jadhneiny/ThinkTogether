@@ -132,7 +132,7 @@ class AuthController {
     public function getCurrentUser() {
         $headers = apache_request_headers();
         error_log("Headers: " . print_r($headers, true)); // Debug log
-    
+        echo json_encode("Headers: " . print_r($headers, true)); // Debug log
         $authHeader = $headers['Authorization'] ?? '';
         if (!$authHeader || !preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
             http_response_code(401);
@@ -143,7 +143,7 @@ class AuthController {
     
         $jwt = $matches[1];
         error_log("JWT Token: " . $jwt); // Debug log
-    
+        echo json_encode("JWT Token: " . $jwt); // Debug log
         try {
             $decoded = JWT::decode($jwt, new Key($this->secretKey, 'HS256'));
             error_log("Decoded JWT: " . print_r($decoded, true)); // Debug log
