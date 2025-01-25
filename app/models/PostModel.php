@@ -8,8 +8,14 @@ class PostModel {
 
     // ✅ Fetch all posts without numeric keys
     public function getAllPosts() {
-        $stmt = $this->pdo->query("SELECT * FROM Post");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);  // Changed here
+        try {
+            $stmt = $this->pdo->query("SELECT * FROM Post");
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            // Debugging: Show the error
+            echo "Database Error: " . $e->getMessage();
+            exit;
+        }
     }
 
     // ✅ Fetch a single post without numeric keys

@@ -8,6 +8,7 @@ class PostController {
     private $secretKey;
 
     public function __construct($pdo) {
+        $this->model = new PostModel($pdo);
         $this->secretKey = 'hellothisismysecretkeyforthinktogether'; 
     }
 
