@@ -129,6 +129,54 @@ class AuthController {
     
 
     // ✅ Get Current User from JWT
+    // public function getCurrentUser() {
+    //     $headers = apache_request_headers();
+    //     error_log("Headers: " . print_r($headers, true)); // Debug log
+    
+    //     $authHeader = $headers['Authorization'] ?? '';
+    //     if (!$authHeader || !preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+    //         http_response_code(401);
+    //         echo json_encode(["message" => "Authorization header not found."]);
+    //         error_log("Authorization header missing or invalid.");
+    //         return;
+    //     }
+    
+    //     $jwt = $matches[1];
+    //     error_log("JWT Token: " . $jwt); // Debug log
+    
+    //     try {
+    //         $decoded = JWT::decode($jwt, new Key($this->secretKey, 'HS256'));
+    //         error_log("Decoded JWT: " . print_r($decoded, true)); // Debug log
+    
+    //         $userId = $decoded->data->id ?? null; // Extract user ID
+    //         if (!$userId) {
+    //             http_response_code(404);
+    //             echo json_encode(["message" => "User ID not found in token."]);
+    //             error_log("User ID missing from token.");
+    //             return;
+    //         }
+    
+    //         $user = $this->model->getUserById($userId);
+    //         error_log("Database query result: " . print_r($user, true));
+    
+    //         if (!$user) {
+    //             http_response_code(404);
+    //             echo json_encode(["message" => "User was not found."]);
+    //             error_log("User not found for ID: " . $userId); // Debug log
+    //             return;
+    //         }
+    
+    //         unset($user['Password']); // Remove sensitive data
+    //         http_response_code(200);
+    //         echo json_encode($user);
+    //         error_log("Returning user data: " . json_encode($user));
+    //     } catch (Exception $e) {
+    //         http_response_code(500);
+    //         error_log("Token decoding failed: " . $e->getMessage());
+    //         echo json_encode(["message" => "Token decoding failed."]);
+    //     }
+    // }        
+    
     public function getCurrentUser() {
         $headers = apache_request_headers();
         error_log("Headers: " . print_r($headers, true)); // Debug log
@@ -148,7 +196,7 @@ class AuthController {
             $decoded = JWT::decode($jwt, new Key($this->secretKey, 'HS256'));
             error_log("Decoded JWT: " . print_r($decoded, true)); // Debug log
     
-            $userId = $decoded->data->id ?? null; // Extract user ID
+            $userId = $decoded->data->id ?? null;
             if (!$userId) {
                 http_response_code(404);
                 echo json_encode(["message" => "User ID not found in token."]);
@@ -162,7 +210,7 @@ class AuthController {
             if (!$user) {
                 http_response_code(404);
                 echo json_encode(["message" => "User was not found."]);
-                error_log("User not found for ID: " . $userId); // Debug log
+                error_log("User not found for ID: " . $userId);
                 return;
             }
     
@@ -175,7 +223,7 @@ class AuthController {
             error_log("Token decoding failed: " . $e->getMessage());
             echo json_encode(["message" => "Token decoding failed."]);
         }
-    }        
+    }
     
     
 }
