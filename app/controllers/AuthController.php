@@ -129,51 +129,45 @@ class AuthController {
     
 
     // ✅ Get Current User from JWT
-public function getCurrentUser() {
-    $headers = apache_request_headers();
-    $authHeader = $headers['Authorization'] ?? '';
-
-    if (!$authHeader || !preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
-        http_response_code(401);
-        echo json_encode(["message" => "Authorization header not found."]);
-        error_log("Authorization header missing or invalid."); // Debug log
-        return;
-    }
-
-    $jwt = $matches[1];
-
-    try {
-        $decoded = JWT::decode($jwt, new Key($this->secretKey, 'HS256'));
-        error_log("JWT decoded successfully: " . json_encode($decoded)); // Debug log
-
-        // Assuming the user ID is stored in the 'sub' claim of the JWT
-        $userId = $decoded->sub ?? null;
-
-        if (!$userId) {
-            http_response_code(404);
-            echo json_encode(["message" => "User ID not found in token."]);
-            error_log("User ID not found in token."); // Debug log
+    public function getCurrentUser() {
+        $headers = apache_request_headers();
+        error_log("Headers: " . print_r($headers, true)); // Debug
+    
+        $authHeader = $headers['Authorization'] ?? '';
+        error_log("Authorization Header: " . $authHeader); // Debug
+    
+        if (!$authHeader || !preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+            http_response_code(401);
+            echo json_encode(["message" => "Authorization header not found."]);
+            error_log("Authorization header missing or invalid.");
             return;
         }
-
-        // Fetch the user from the database using the user ID
-        $user = $this->model->getUserById($userId);
-
-        if (!$user) {
-            http_response_code(404);
-            echo json_encode(["message" => "User not found."]);
-            error_log("User not found for ID: " . $userId); // Debug log
-            return;
+    
+        $jwt = $matches[1];
+        error_log("JWT Token: " . $jwt); // Debug
+    
+        try {
+            $decoded = JWT::decode($jwt, new Key($this->secretKey, 'HS256'));
+            error_log("Decoded JWT: " . print_r($decoded, true)); // Debug
+    
+            $userId = $decoded->data->id;
+            $user = $this->model->getUserById($userId);
+    
+            if (!$user) {
+                http_response_code(404);
+                echo json_encode(["message" => "User not found."]);
+                error_log("User not found for ID: " . $userId); // Debug
+                return;
+            }
+    
+            unset($user['Password']);  // Remove sensitive data
+            echo json_encode($user);
+        } catch (Exception $e) {
+            http_response_code(500);
+            error_log("Token decoding failed: " . $e->getMessage());
+            echo json_encode(["message" => "Token decoding failed."]);
         }
-
-        // Return the user data
-        http_response_code(200);
-        echo json_encode($user);
-    } catch (Exception $e) {
-        http_response_code(500);
-        error_log("Token decoding failed: " . $e->getMessage());
-        echo json_encode(["message" => "Token decoding failed."]);
     }
-}
+    
     
 }
