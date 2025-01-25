@@ -120,4 +120,16 @@ class UserController {
             echo json_encode(["message" => "Failed to delete user."]);
         }
     }
+
+        // Get all posts by a user
+        public function getUserPosts($userId) {
+            $posts = $this->model->getPostsByUserId($userId);
+            echo json_encode($posts);
+        }
+    
+        // Get all comments by a user
+        public function getUserComments($userId) {
+            $comments = $this->model->getCommentsByUserId($userId);
+            echo json_encode($comments);
+        }
 }

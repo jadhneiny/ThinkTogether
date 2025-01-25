@@ -94,5 +94,19 @@ class UserModel {
         $stmt->execute(['id' => $id]);
         return $stmt->rowCount();
     }
+
+        // Get all posts by a user
+        public function getPostsByUserId($userId) {
+            $stmt = $this->pdo->prepare("SELECT * FROM Post WHERE UserId = ?");
+            $stmt->execute([$userId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+    
+        // Get all comments by a user
+        public function getCommentsByUserId($userId) {
+            $stmt = $this->pdo->prepare("SELECT * FROM Comment WHERE UserId = ?");
+            $stmt->execute([$userId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
 }
 ?>
