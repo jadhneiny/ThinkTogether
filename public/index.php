@@ -33,7 +33,9 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 // Normalize the URI (remove "/ThinkTogether/public")
 $uri = str_replace('/ThinkTogether/public', '', $uri);
-$uri = rtrim($uri, '/');  // Remove trailing slashes
+$uri = rtrim($uri, '/'); // Remove trailing slashes
+error_log("Normalized URI: $uri");
+error_log("Request Method: $method");
 
 // Route Matching
 foreach ($routes as $route => $controllerAction) {
@@ -42,16 +44,18 @@ foreach ($routes as $route => $controllerAction) {
 
     // Ensure method matches
     if (strtoupper($method) !== strtoupper($routeMethod)) {
-        continue;  // Method does not match, move to the next route
+        continue; // Method does not match, move to the next route
     }
 
     // Convert route path to regex
     $routePattern = preg_replace('/\{[a-zA-Z0-9_]+\}/', '([a-zA-Z0-9_]+)', $routePath);
     $routePattern = str_replace('/', '\/', $routePattern);
+    error_log("Generated route pattern: $routePattern for $routePath");
 
     // Check if the URI matches the route pattern
     if (preg_match("/^$routePattern$/", $uri, $matches)) {
         list($controller, $action) = explode('@', $controllerAction);
+        error_log("Matched route: $route with controller $controller@$action");
 
         // Load the controller
         $controllerPath = "../app/controllers/$controller.php";
@@ -68,15 +72,17 @@ foreach ($routes as $route => $controllerAction) {
         $controllerInstance = new $controller($pdo);
 
         // Call the controller action
-        array_shift($matches);  // Remove full match
-        header('Content-Type: application/json');  // Set header to JSON
+        array_shift($matches); // Remove full match
+        header('Content-Type: application/json'); // Set header to JSON
         call_user_func_array([$controllerInstance, $action], $matches);
         exit;
     }
 }
 
 // No route matched
+error_log("No route matched for URI: $uri");
 header('Content-Type: application/json');
 http_response_code(404);
 echo json_encode(["error" => "Route not found"]);
+
 ?>
