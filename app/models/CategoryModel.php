@@ -8,7 +8,7 @@ class CategoryModel {
 
     public function getAllCategories() {
         $stmt = $this->pdo->query("SELECT * FROM Category");
-        return $stmt->fetchAll();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function createCategory($data) {
