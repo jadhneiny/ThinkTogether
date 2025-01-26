@@ -13,15 +13,24 @@ class PostController {
     }
 
     // Get all posts
+    // public function getAllPosts() {
+    //     header('Content-Type: application/json');  
+    //     try {
+    //         $posts = $this->model->getAllPosts();
+    //         echo json_encode($posts);
+    //     } catch (Exception $e) {
+    //         http_response_code(500);
+    //         echo json_encode(["error" => "Failed to fetch posts: " . $e->getMessage()]);
+    //     }
+    // }
+    
     public function getAllPosts() {
-        header('Content-Type: application/json');  
-        try {
-            $posts = $this->model->getAllPosts();
-            echo json_encode($posts);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(["error" => "Failed to fetch posts: " . $e->getMessage()]);
-        }
+        $search = $_GET['search'] ?? '';
+        $category = $_GET['category'] ?? '';
+        $sortBy = $_GET['sortBy'] ?? '';
+    
+        $posts = $this->model->getAllPosts($search, $category, $sortBy);
+        echo json_encode($posts);
     }
 
     // Get a single post by ID

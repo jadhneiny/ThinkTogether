@@ -7,17 +7,46 @@ class PostModel {
     }
 
     // ✅ Fetch all posts without numeric keys
-    public function getAllPosts() {
-        try {
-            $stmt = $this->pdo->query("SELECT * FROM Post");
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            // Debugging: Show the error
-            echo "Database Error: " . $e->getMessage();
-            exit;
+    // public function getAllPosts() {
+    //     try {
+    //         $stmt = $this->pdo->query("SELECT * FROM Post");
+    //         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    //     } catch (PDOException $e) {
+    //         // Debugging: Show the error
+    //         echo "Database Error: " . $e->getMessage();
+    //         exit;
+    //     }
+    // }
+
+    public function getAllPosts($search = '', $category = '', $sortBy = '') {
+        $sql = "SELECT * FROM Post WHERE 1=1";
+    
+        if ($search) {
+            $sql .= " AND (Title LIKE :search OR Description LIKE :search)";
         }
+        if ($category) {
+            $sql .= " AND CategoryId = :category";
+        }
+        if ($sortBy == 'popularity') {
+            $sql .= " ORDER BY Upvotes DESC";
+        } elseif ($sortBy == 'date') {
+            $sql .= " ORDER BY CreatedAt DESC";
+        }
+    
+        $stmt = $this->pdo->prepare($sql);
+    
+        if ($search) {
+            $stmt->bindValue(':search', '%' . $search . '%');
+        }
+        if ($category) {
+            $stmt->bindValue(':category', $category);
+        }
+    
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 
+    
     // ✅ Fetch a single post without numeric keys
     public function getPostById($id) {
         $stmt = $this->pdo->prepare("SELECT * FROM Post WHERE Id = ?");
