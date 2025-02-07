@@ -69,20 +69,25 @@ class PostModel {
     
 
     public function createPost($data) {
-        $sql = "INSERT INTO Post (UserId, Title, Description, CategoryId, Link, CodeSnippet) 
-                VALUES (:userId, :title, :description, :categoryId, :link, :codeSnippet)";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([
-            'userId' => $data['userId'],
-            'title' => $data['title'],
-            'description' => $data['description'],
-            'categoryId' => $data['categoryId'],
-            'link' => $data['link'],
-            'codeSnippet' => $data['codeSnippet']
-        ]);
-        return $this->pdo->lastInsertId();
-    }
-    
+        try {
+            $sql = "INSERT INTO Post (UserId, Title, Description, CategoryId, Link, CodeSnippet) 
+                    VALUES (:userId, :title, :description, :categoryId, :link, :codeSnippet)";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([
+                'userId' => $data['userId'],
+                'title' => $data['title'],
+                'description' => $data['description'],
+                'categoryId' => $data['categoryId'],
+                'link' => $data['link'],
+                'codeSnippet' => $data['codeSnippet']
+            ]);
+            error_log("Post inserted successfully with ID: " . $this->pdo->lastInsertId());
+            return $this->pdo->lastInsertId();
+        } catch (PDOException $e) {
+            error_log("Database Error: " . $e->getMessage());
+            throw new Exception("Database error occurred.");
+        }
+    }        
 
     public function updatePost($id, $data) {
         $sql = "UPDATE Post 

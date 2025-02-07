@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
-
+require_once '/Applications/XAMPP/xamppfiles/htdocs/ThinkTogether/vendor/autoload.php';
 require_once '../config/db_connection.php';
 require_once '../config/routes.php';
 
